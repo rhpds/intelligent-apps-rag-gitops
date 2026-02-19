@@ -40,7 +40,7 @@ metadata:
     opendatahub.io/accelerator-name: ''
     openshift.io/description: ''
     openshift.io/display-name: My Workbench
-    notebooks.opendatahub.io/last-image-selection: '{{ .Values.workbench}} '
+    notebooks.opendatahub.io/last-image-selection: '{{.Values.workbench}}'
     notebooks.opendatahub.io/last-size-selection: Standard
     opendatahub.io/username: {{ .Values.username}} 
   name: {{.Values.workbench}}
@@ -94,7 +94,7 @@ spec:
                                   --ServerApp.tornado_settings={"user":"{{ .Values.username}} ","hub_host":"$DASHBOARD_ROUTE","hub_prefix":"/projects/{{.Values.username}}"}
             - name: JUPYTER_IMAGE
               value: >-
-                image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/{{ .Values.workbench}} 
+                image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/{{.Values.workbench}}
           ports:
             - containerPort: 8888
               name: notebook-port
@@ -108,7 +108,7 @@ spec:
             - mountPath: /dev/shm
               name: shm
           image: >-
-            image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/{{ .Values.workbench}} 
+            image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/{{.Values.workbench}}
           workingDir: /opt/app-root/src
         - resources:
             limits:
@@ -169,9 +169,9 @@ spec:
             - '--email-domain=*'
             - '--skip-provider-button'
             - >-
-              --openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"{{ .Values.workbench}} ","namespace":"{{.Values.username}}"}
+              --openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"{{.Values.workbench}}","namespace":"{{.Values.username}}"}
             - >-
-              --logout-url=$DASHBOARD_ROUTE/projects/{{.Values.username}}?notebookLogout={{ .Values.workbench}} 
+              --logout-url=$DASHBOARD_ROUTE/projects/{{.Values.username}}?notebookLogout={{.Values.workbench}}
       enableServiceLinks: false
       serviceAccountName: {{.Values.workbench}}
       tolerations:
