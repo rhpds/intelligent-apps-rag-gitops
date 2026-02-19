@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: {{ .Values.username }}
+  name: {{.Values.username}}
   labels:
     opendatahub.io/dashboard: 'true'
   annotations:
@@ -12,8 +12,8 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: admin-{{ .Values.username }}
-  namespace: {{ .Values.username }}
+  name: admin-{{.Values.username}}
+  namespace: {{.Values.username}}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -21,7 +21,7 @@ roleRef:
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
-  name: {{ .Values.username }}
+  name: {{.Values.username}}
 ---
 apiVersion: kubeflow.org/v1
 kind: Notebook
@@ -30,17 +30,17 @@ metadata:
     notebooks.opendatahub.io/inject-oauth: 'true'
     opendatahub.io/image-display-name: CUSTOM - Parasol RAG Workbench
     notebooks.opendatahub.io/oauth-logout-url: >-
-      $DASHBOARD_ROUTE/projects/{{ .Values.username }}?notebookLogout={{ .Values.worbench }}
+      $DASHBOARD_ROUTE/projects/{{.Values.username}}?notebookLogout={{.Values.workbench}}
     opendatahub.io/accelerator-name: ''
     openshift.io/description: ''
     openshift.io/display-name: My Workbench
     notebooks.opendatahub.io/last-image-selection: '{{ .Values.workbench}} '
     notebooks.opendatahub.io/last-size-selection: Standard
     opendatahub.io/username: {{ .Values.username}} 
-  name: {{ .Values.worbench }}
-  namespace: {{ .Values.username }}
+  name: {{.Values.workbench}}
+  namespace: {{.Values.username}}
   labels:
-    app: {{ .Values.worbench }}
+    app: {{.Values.workbench}}
     opendatahub.io/dashboard: 'true'
     opendatahub.io/odh-managed: 'true'
     opendatahub.io/user: {{ .Values.username}} 
@@ -59,18 +59,18 @@ spec:
           readinessProbe:
             failureThreshold: 3
             httpGet:
-              path: /notebook/{{ .Values.username }}/{{ .Values.worbench }}/api
+              path: /notebook/{{.Values.username}}/{{.Values.workbench}}/api
               port: notebook-port
               scheme: HTTP
             initialDelaySeconds: 10
             periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 1
-          name: {{ .Values.worbench }}
+          name: {{.Values.workbench}}
           livenessProbe:
             failureThreshold: 3
             httpGet:
-              path: /notebook/{{ .Values.username }}/{{ .Values.worbench }}/api
+              path: /notebook/{{.Values.username}}/{{.Values.workbench}}/api
               port: notebook-port
               scheme: HTTP
             initialDelaySeconds: 10
@@ -83,9 +83,9 @@ spec:
                 --ServerApp.port=8888
                                   --ServerApp.token=''
                                   --ServerApp.password=''
-                                  --ServerApp.base_url=/notebook/{{ .Values.username }}/{{ .Values.worbench }}
+                                  --ServerApp.base_url=/notebook/{{.Values.username}}/{{.Values.workbench}}
                                   --ServerApp.quit_button=False
-                                  --ServerApp.tornado_settings={"user":"{{ .Values.username}} ","hub_host":"$DASHBOARD_ROUTE","hub_prefix":"/projects/{{ .Values.username }}"}
+                                  --ServerApp.tornado_settings={"user":"{{ .Values.username}} ","hub_host":"$DASHBOARD_ROUTE","hub_prefix":"/projects/{{.Values.username}}"}
             - name: JUPYTER_IMAGE
               value: >-
                 image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/{{ .Values.workbench}} 
@@ -96,7 +96,7 @@ spec:
           imagePullPolicy: Always
           volumeMounts:
             - mountPath: /opt/app-root/src
-              name: {{ .Values.worbench }}
+              name: {{.Values.workbench}}
             - mountPath: /opt/app-root/runtimes
               name: elyra-dsp-details
             - mountPath: /dev/shm
@@ -153,7 +153,7 @@ spec:
             - '--provider=openshift'
             - '--https-address=:8443'
             - '--http-address='
-            - '--openshift-service-account={{ .Values.worbench }}'
+            - '--openshift-service-account={{.Values.workbench}}'
             - '--cookie-secret-file=/etc/oauth/config/cookie_secret'
             - '--cookie-expire=24h0m0s'
             - '--tls-cert=/etc/tls/private/tls.crt'
@@ -163,19 +163,19 @@ spec:
             - '--email-domain=*'
             - '--skip-provider-button'
             - >-
-              --openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"{{ .Values.workbench}} ","namespace":"{{ .Values.username }}"}
+              --openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"{{ .Values.workbench}} ","namespace":"{{.Values.username}}"}
             - >-
-              --logout-url=$DASHBOARD_ROUTE/projects/{{ .Values.username }}?notebookLogout={{ .Values.workbench}} 
+              --logout-url=$DASHBOARD_ROUTE/projects/{{.Values.username}}?notebookLogout={{ .Values.workbench}} 
       enableServiceLinks: false
-      serviceAccountName: {{ .Values.worbench }}
+      serviceAccountName: {{.Values.workbench}}
       tolerations:
         - effect: NoSchedule
           key: notebooksonly
           operator: Exists
       volumes:
-        - name: {{ .Values.worbench }}
+        - name: {{.Values.workbench}}
           persistentVolumeClaim:
-            claimName: {{ .Values.worbench }}
+            claimName: {{.Values.workbench}}
         - name: elyra-dsp-details
           secret:
             secretName: ds-pipeline-config
@@ -185,18 +185,18 @@ spec:
         - name: oauth-config
           secret:
             defaultMode: 420
-            secretName: {{ .Values.worbench }}-oauth-config
+            secretName: {{.Values.workbench}}-oauth-config
         - name: tls-certificates
           secret:
             defaultMode: 420
-            secretName: {{ .Values.worbench }}-tls
+            secretName: {{.Values.workbench}}-tls
   readyReplicas: 1
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: clone-repo
-  namespace: {{ .Values.username }}
+  namespace: {{.Values.username}}
 spec:
   backoffLimit: 4
   template:
@@ -211,12 +211,12 @@ spec:
         args:
         - -ec
         - |-
-          echo -n "Waiting for workbench pod in {{ .Values.username }} namespace"
-          while [ -z "\$(oc get pods -n {{ .Values.username }} -l app={{ .Values.workbench }} -o custom-columns=STATUS:.status.phase --no-headers | grep Running 2>/dev/null)" ]; do
-              echo -n '.'
+          echo -n "Waiting for workbench pod in {{.Values.username}} namespace"
+          while [ -z "\$(oc get pods -n {{.Values.username}} -l app={{ .Values.workbench }} -o custom-columns=STATUS:.status.phase --no-headers | grep Running 2>/dev/null)" ]; do
+              echo -n '.'wo 
               sleep 1
           done
-          echo "Workbench pod is running in {{ .Values.username }} namespace"
+          echo "Workbench pod is running in {{.Values.username}} namespace"
       containers:
       - name: git-clone
         image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
@@ -238,7 +238,7 @@ metadata:
     volume.beta.kubernetes.io/storage-provisioner: openshift-storage.cephfs.csi.ceph.com
     volume.kubernetes.io/storage-provisioner: openshift-storage.cephfs.csi.ceph.com
   name: processing-pipeline-storage
-  namespace: {{ .Values.username }}
+  namespace: {{.Values.username}}
   finalizers:
     - kubernetes.io/pvc-protection
   labels:
