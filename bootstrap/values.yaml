@@ -17,3 +17,8 @@ workspace:
     url: https://github.com/rhpds/intelligent-apps-rag-gitops
     revision: main
     path: workspace
+
+cluster:
+  repoURL: https://github.com/rhpds/intelligent-apps-rag-gitops
+  revision: main
+  path: cluster-bootstrap
