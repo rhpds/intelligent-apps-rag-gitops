@@ -314,7 +314,7 @@ spec:
       volumes:
         - name: {{.Values.workbench}}-storage
           persistentVolumeClaim:
-            claimName: {{.Values.workbench}}-storage
+            claimName: {{.Values.workbench}}
         - name: elyra-dsp-details
           secret:
             secretName: ds-pipeline-config
