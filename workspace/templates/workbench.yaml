@@ -88,7 +88,7 @@ stringData:
   AWS_S3_ENDPOINT: {{.Values.minio.host}} 
   AWS_S3_BUCKET: {{.Values.username}}
 ---
-apiVersion: datasciencepipelinesapplications.opendatahub.io/v1alpha1
+apiVersion: datasciencepipelinesapplications.opendatahub.io/v1
 kind: DataSciencePipelinesApplication
 metadata:
   finalizers:
