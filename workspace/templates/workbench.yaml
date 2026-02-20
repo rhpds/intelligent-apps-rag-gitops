@@ -92,27 +92,34 @@ apiVersion: kubeflow.org/v1
 kind: Notebook
 metadata:
   annotations:
-    notebooks.opendatahub.io/inject-oauth: 'true'
     opendatahub.io/image-display-name: CUSTOM - Parasol RAG Workbench
-    notebooks.opendatahub.io/oauth-logout-url: >-
-      $DASHBOARD_ROUTE/projects/{{.Values.username}}?notebookLogout={{.Values.workbench}}
-    opendatahub.io/accelerator-name: ''
+    opendatahub.io/hardware-profile-resource-version: '603721'
     openshift.io/description: ''
-    openshift.io/display-name: My Workbench
-    notebooks.opendatahub.io/last-image-selection: '{{.Values.workbench}}'
-    notebooks.opendatahub.io/last-size-selection: Standard
-    opendatahub.io/username: {{ .Values.username}} 
+    openshift.io/display-name: My Workbench 2
+    notebooks.opendatahub.io/last-image-version-git-commit-selection: ''
+    notebooks.opendatahub.io/last-image-selection: 'ic-workbench:1.2'
+    opendatahub.io/hardware-profile-namespace: redhat-ods-applications
+    opendatahub.io/username: {{.Values.username}}
+    opendatahub.io/hardware-profile-name: default-profile
+    opendatahub.io/connections: ''
+    notebooks.opendatahub.io/inject-auth: 'true'
+    opendatahub.io/workbench-image-namespace: ''
+  resourceVersion: '1629174'
   name: {{.Values.workbench}}
+  creationTimestamp: '2026-02-19T15:22:30Z'
   namespace: {{.Values.username}}
+  finalizers:
+    - notebook.opendatahub.io/httproute-cleanup
+    - notebook.opendatahub.io/referencegrant-cleanup
+    - notebook.opendatahub.io/kube-rbac-proxy-cleanup
   labels:
     app: {{.Values.workbench}}
     opendatahub.io/dashboard: 'true'
     opendatahub.io/odh-managed: 'true'
-    opendatahub.io/user: {{ .Values.username}} 
+    opendatahub.io/user: {{.Values.username}}
 spec:
   template:
     spec:
-      affinity: {}
       containers:
         - resources:
             limits:
@@ -150,24 +157,37 @@ spec:
                                   --ServerApp.password=''
                                   --ServerApp.base_url=/notebook/{{.Values.username}}/{{.Values.workbench}}
                                   --ServerApp.quit_button=False
-                                  --ServerApp.tornado_settings={"user":"{{ .Values.username}} ","hub_host":"$DASHBOARD_ROUTE","hub_prefix":"/projects/{{.Values.username}}"}
             - name: JUPYTER_IMAGE
-              value: >-
-                image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/{{.Values.workbench}}
+              value: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/ic-workbench:1.2'
+            - name: PIP_CERT
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: REQUESTS_CA_BUNDLE
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: SSL_CERT_FILE
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: PIPELINES_SSL_SA_CERTS
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: KF_PIPELINES_SSL_SA_CERTS
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: GIT_SSL_CAINFO
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
           ports:
             - containerPort: 8888
               name: notebook-port
               protocol: TCP
           imagePullPolicy: Always
           volumeMounts:
-            - mountPath: /opt/app-root/src
-              name: {{.Values.workbench}}
-            - mountPath: /opt/app-root/runtimes
-              name: elyra-dsp-details
+            - mountPath: /opt/app-root/src/
+              name: {{.Values.workbench}}-storage
             - mountPath: /dev/shm
               name: shm
-          image: >-
-            image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/{{.Values.workbench}}
+            - mountPath: /etc/pki/tls/custom-certs/ca-bundle.crt
+              name: trusted-ca
+              readOnly: true
+              subPath: ca-bundle.crt
+            - mountPath: /opt/app-root/pipeline-runtimes/
+              name: runtime-images
+          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/ic-workbench:1.2'
           workingDir: /opt/app-root/src
         - resources:
             limits:
@@ -179,83 +199,80 @@ spec:
           readinessProbe:
             failureThreshold: 3
             httpGet:
-              path: /oauth/healthz
-              port: oauth-proxy
+              path: /healthz
+              port: 8444
               scheme: HTTPS
             initialDelaySeconds: 5
             periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 1
-          name: oauth-proxy
+          name: kube-rbac-proxy
           livenessProbe:
             failureThreshold: 3
             httpGet:
-              path: /oauth/healthz
-              port: oauth-proxy
+              path: /healthz
+              port: 8444
               scheme: HTTPS
             initialDelaySeconds: 30
             periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 1
-          env:
-            - name: NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
           ports:
             - containerPort: 8443
-              name: oauth-proxy
+              name: kube-rbac-proxy
               protocol: TCP
           imagePullPolicy: Always
           volumeMounts:
-            - mountPath: /etc/oauth/config
-              name: oauth-config
+            - mountPath: /etc/kube-rbac-proxy
+              name: kube-rbac-proxy-config
             - mountPath: /etc/tls/private
-              name: tls-certificates
-          image: >-
-            registry.redhat.io/openshift4/ose-oauth-proxy@sha256:4bef31eb993feb6f1096b51b4876c65a6fb1f4401fee97fa4f4542b6b7c9bc46
+              name: kube-rbac-proxy-tls-certificates
+          image: 'registry.redhat.io/rhoai/odh-kube-auth-proxy-rhel9@sha256:1f4b2b9bb5061faf17299c2ae2405ab408e2b7ce349d9831eb6045990e6da005'
           args:
-            - '--provider=openshift'
-            - '--https-address=:8443'
-            - '--http-address='
-            - '--openshift-service-account={{.Values.workbench}}'
-            - '--cookie-secret-file=/etc/oauth/config/cookie_secret'
-            - '--cookie-expire=24h0m0s'
-            - '--tls-cert=/etc/tls/private/tls.crt'
-            - '--tls-key=/etc/tls/private/tls.key'
-            - '--upstream=http://localhost:8888'
-            - '--upstream-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
-            - '--email-domain=*'
-            - '--skip-provider-button'
-            - >-
-              --openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"{{.Values.workbench}}","namespace":"{{.Values.username}}"}
-            - >-
-              --logout-url=$DASHBOARD_ROUTE/projects/{{.Values.username}}?notebookLogout={{.Values.workbench}}
+            - '--secure-listen-address=0.0.0.0:8443'
+            - '--upstream=http://127.0.0.1:8888/'
+            - '--logtostderr=true'
+            - '--v=10'
+            - '--proxy-endpoints-port=8444'
+            - '--config-file=/etc/kube-rbac-proxy/config-file.yaml'
+            - '--tls-cert-file=/etc/tls/private/tls.crt'
+            - '--tls-private-key-file=/etc/tls/private/tls.key'
+            - '--auth-header-fields-enabled=true'
+            - '--auth-header-user-field-name=X-Auth-Request-User'
+            - '--auth-header-groups-field-name=X-Auth-Request-Groups'
       enableServiceLinks: false
       serviceAccountName: {{.Values.workbench}}
-      tolerations:
-        - effect: NoSchedule
-          key: notebooksonly
-          operator: Exists
       volumes:
-        - name: {{.Values.workbench}}
+        - name: {{.Values.workbench}}-storage
           persistentVolumeClaim:
-            claimName: {{.Values.workbench}}
+            claimName: {{.Values.workbench}}-storage
         - name: elyra-dsp-details
           secret:
             secretName: ds-pipeline-config
         - emptyDir:
             medium: Memory
           name: shm
-        - name: oauth-config
+        - configMap:
+            items:
+              - key: ca-bundle.crt
+                path: ca-bundle.crt
+            name: workbench-trusted-ca-bundle
+            optional: true
+          name: trusted-ca
+        - configMap:
+            name: pipeline-runtime-images
+            optional: true
+          name: runtime-images
+        - configMap:
+            defaultMode: 420
+            name: {{.Values.workbench}}-kube-rbac-proxy-config
+          name: kube-rbac-proxy-config
+        - name: kube-rbac-proxy-tls-certificates
           secret:
             defaultMode: 420
-            secretName: {{.Values.workbench}}-oauth-config
-        - name: tls-certificates
-          secret:
-            defaultMode: 420
-            secretName: {{.Values.workbench}}-tls
+            secretName: {{.Values.workbench}}-kube-rbac-proxy-tls
   readyReplicas: 1
+
 ---
 apiVersion: batch/v1
 kind: Job
