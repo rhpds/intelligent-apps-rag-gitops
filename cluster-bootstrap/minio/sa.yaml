@@ -8,7 +8,7 @@ kind: ServiceAccount
 metadata:
   name: minio-manage
   # The namespace will be applied by Kustomize/ArgoCD
-  # namespace: minio 
+  namespace: minio 
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 
