@@ -20,7 +20,7 @@ kind: RoleBinding
 metadata:
   name: minio-secrets
   # The namespace will be applied by Kustomize/ArgoCD
-  # namespace: minio
+  namespace: minio
   annotations:
     # THIS IS THE CORRECT LOCATION FOR THE ANNOTATION
     argocd.argoproj.io/sync-wave: "4"
