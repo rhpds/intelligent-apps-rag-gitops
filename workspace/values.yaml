@@ -5,3 +5,9 @@
 username: user1
 
 workbench: my-workbench
+
+minio:
+  user: minio
+  pass: minio123
+  host: minio.minio.svc.cluster.local
+  bucket: user1
