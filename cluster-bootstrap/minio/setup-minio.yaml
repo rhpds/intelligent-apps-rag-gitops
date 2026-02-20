@@ -6,6 +6,7 @@ metadata:
   # Using both 'name' and 'generateName' to satisfy Kustomize validation and ArgoCD's need for unique jobs.
   # The Kubernetes API server will prioritize 'generateName' at runtime.
   name: minio-setup-placeholder
+  namespace: minio
   generateName: minio-setup-
   # The namespace will be applied by Kustomize/ArgoCD.
   # namespace: minio # This is set by the ArgoCD Application destination
