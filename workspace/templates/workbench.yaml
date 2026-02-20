@@ -88,14 +88,84 @@ stringData:
   AWS_S3_ENDPOINT: {{.Values.minio.host}} 
   AWS_S3_BUCKET: {{.Values.username}}
 ---
+apiVersion: datasciencepipelinesapplications.opendatahub.io/v1alpha1
+kind: DataSciencePipelinesApplication
+metadata:
+  finalizers:
+  - datasciencepipelinesapplications.opendatahub.io/finalizer
+  name: dspa
+  namespace: {{.Values.username}}
+spec:
+  apiServer:
+    caBundleFileMountPath: ''
+    stripEOF: true
+    dbConfigConMaxLifetimeSec: 120
+    applyTektonCustomResource: true
+    caBundleFileName: ''
+    deploy: true
+    artifactSignedURLExpirySeconds: 60
+    enableSamplePipeline: false
+    autoUpdatePipelineDefaultVersion: true
+    archiveLogs: false
+    terminateStatus: Cancelled
+    enableOauth: true
+    trackArtifacts: true
+    collectMetrics: true
+    injectDefaultScript: true
+  database:
+    disableHealthCheck: false
+    mariaDB:
+      deploy: true
+      pipelineDBName: mlpipeline
+      pvcSize: 10Gi
+      username: mlpipeline
+  dspVersion: v2
+  objectStorage:
+    disableHealthCheck: false
+    enableExternalRoute: false
+    externalStorage:
+      basePath: ''
+      bucket: {{.Values.username}}
+      host: {{.Values.minio.route}}
+      port: ''
+      region: us
+      s3CredentialsSecret:
+        accessKey: AWS_ACCESS_KEY_ID
+        secretKey: AWS_SECRET_ACCESS_KEY
+        secretName: aws-connection-shared-minio---pipelines
+      scheme: https
+      secure: true
+  persistenceAgent:
+    deploy: true
+    numWorkers: 2
+  podToPodTLS: true
+  scheduledWorkflow:
+    cronScheduleTimezone: UTC
+    deploy: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ds-pipeline-config
+  namespace: {{.Values.username}}
+stringData:
+  odh_dsp.json: '{"display_name": "Data Science Pipeline", "metadata": {"tags": [],
+    "display_name": "Data Science Pipeline", "engine": "$PIPELINE_ENGINE", "auth_type": "KUBERNETES_SERVICE_ACCOUNT_TOKEN",
+    "api_endpoint": "\$PIPELINE_ROUTE",
+    "public_api_endpoint": "$DASHBOARD_ROUTE/experiments/{{.Values.username}}",
+    "cos_auth_type": "KUBERNETES_SECRET", "cos_secret": "aws-connection-shared-minio---pipelines",
+    "cos_endpoint": "{{.Values.minio.host}}", "cos_bucket": "{{.Values.username}}",
+    "cos_username": "{{.Values.minio.user}}", "cos_password": "{{.Values.minio.pass}}",
+    "runtime_type": "KUBEFLOW_PIPELINES"}, "schema_name": "kfp"}'
+type: Opaque
+---
 apiVersion: kubeflow.org/v1
 kind: Notebook
 metadata:
   annotations:
     opendatahub.io/image-display-name: CUSTOM - Parasol RAG Workbench
-    opendatahub.io/hardware-profile-resource-version: '603721'
     openshift.io/description: ''
-    openshift.io/display-name: My Workbench 2
+    openshift.io/display-name: {{.Values.workbench}}
     notebooks.opendatahub.io/last-image-version-git-commit-selection: ''
     notebooks.opendatahub.io/last-image-selection: 'ic-workbench:1.2'
     opendatahub.io/hardware-profile-namespace: redhat-ods-applications
@@ -104,7 +174,6 @@ metadata:
     opendatahub.io/connections: ''
     notebooks.opendatahub.io/inject-auth: 'true'
     opendatahub.io/workbench-image-namespace: ''
-  resourceVersion: '1629174'
   name: {{.Values.workbench}}
   creationTimestamp: '2026-02-19T15:22:30Z'
   namespace: {{.Values.username}}

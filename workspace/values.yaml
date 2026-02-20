@@ -11,3 +11,4 @@ minio:
   pass: minio123
   host: minio.minio.svc.cluster.local
   bucket: user1
+  route: https://minio-s3-minio.apps.cluster-guid.sandbox.opentlc.com
