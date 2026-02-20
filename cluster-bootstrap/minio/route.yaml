@@ -6,10 +6,10 @@ metadata:
   namespace: minio
   annotations:
     argocd.argoproj.io/sync-wave: "3"
+    haproxy.router.openshift.io/timeout: 300s
   labels:
     app: minio
-  annotations:
-    haproxy.router.openshift.io/timeout: 300s
+    
 spec:
   port:
     targetPort: console
