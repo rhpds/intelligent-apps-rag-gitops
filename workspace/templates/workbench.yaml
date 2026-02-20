@@ -73,6 +73,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: aws-connection-shared-minio---pipelines
+  namespace: {{.Values.username}} 
   labels:
     opendatahub.io/dashboard: "true"
     opendatahub.io/managed: "true"
