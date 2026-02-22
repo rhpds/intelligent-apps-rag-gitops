@@ -98,20 +98,14 @@ metadata:
 spec:
   apiServer:
     caBundleFileMountPath: ''
-    stripEOF: true
-    dbConfigConMaxLifetimeSec: 120
-    applyTektonCustomResource: true
     caBundleFileName: ''
     deploy: true
     artifactSignedURLExpirySeconds: 60
     enableSamplePipeline: false
-    autoUpdatePipelineDefaultVersion: true
-    archiveLogs: false
-    terminateStatus: Cancelled
+    managedPipelines: {}
     enableOauth: true
-    trackArtifacts: true
-    collectMetrics: true
-    injectDefaultScript: true
+    cacheEnabled: true
+    pipelineStore: kubernetes
   database:
     disableHealthCheck: false
     mariaDB:
