@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(kubectl get:*)",
+      "Bash(kubectl describe:*)"
     ]
   }
 }
