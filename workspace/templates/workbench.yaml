@@ -126,7 +126,7 @@ spec:
     externalStorage:
       basePath: ''
       bucket: {{.Values.username}}
-      host: {{.Values.minio.route}}
+      host: {{ .Values.minio.route_prefix }}.{{ .Values.subdomain }}
       port: ''
       region: us
       s3CredentialsSecret:
