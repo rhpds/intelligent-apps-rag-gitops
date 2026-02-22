@@ -6,9 +6,11 @@ username: user1
 
 workbench: my-workbench
 
+subdomain: apps.cluster-guid.sandbox.opentlc.com
+
 minio:
   user: minio
   pass: minio123
   host: minio.minio.svc.cluster.local
   bucket: user1
-  route: https://minio-s3-minio.apps.cluster-guid.sandbox.opentlc.com
+  route: "https://minio-s3-minio.{{ .Values.subdomain }}"

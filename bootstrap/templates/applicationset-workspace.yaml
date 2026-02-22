@@ -26,6 +26,7 @@ spec:
         helm:
           values: |
             username: '{{- "{{" }} user {{- " }}" }}'
+            subdomain: {{ .Values.deployer.domain }}
       destination:
         server: https://kubernetes.default.svc
       syncPolicy:
